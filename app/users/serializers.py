@@ -51,3 +51,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token((user))
         token['email'] = user.email
         return token
+
+
+class SendEmailSerilaizer(serializers.Serializer):
+    email = serializers.EmailField()
+    subject = serializers.CharField(max_length=255)
+    body = serializers.CharField()
+    delay = serializers.IntegerField(required=False, default=0, min_value=0,
+    help_text="Отложить выполнение в секyндах")
