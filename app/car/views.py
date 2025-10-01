@@ -3,14 +3,24 @@ from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 from rest_framework.response import Response
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from app.car.models import Car
 from app.car.serializers import CarSerializer
+from app.filters import CarFilter
+from app.pagination import CustonPagination
 
-class CArViewsetsAPI(ModelViewSet):
+class CarViewsetsAPI(ModelViewSet):
     queryset = Car.objects.all()
     serializer_class = CarSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustonPagination
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = CarFilter
+    search_fields = ["brand", "model", "number"]
+    ordering_fields = ["date", "brand", "probeg"]
 
     def list(self, request, *args, **kwargs):
         user_id = request.user.id
