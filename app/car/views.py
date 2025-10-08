@@ -5,11 +5,15 @@ from django.core.cache import cache
 from rest_framework.response import Response
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions
+from asgiref.sync import sync_to_async
+import asyncio
 
 from app.car.models import Car
 from app.car.serializers import CarSerializer
 from app.filters import CarFilter
 from app.pagination import CustonPagination
+from bot.bot import send_car_notification
 
 class CarViewsetsAPI(ModelViewSet):
     queryset = Car.objects.all()
@@ -52,3 +56,25 @@ class CarViewsetsAPI(ModelViewSet):
             pass
 
         return Response(car)
+
+class CarNotification(ModelViewSet):
+    queryset = Car.objects.all()
+    serializer_class = CarSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+
+        car = serializer.save(user=self.request.user)
+
+        car_data = {
+            "user" : car.user.username,
+            "brand" : car.brand,
+            "model" : car.model,
+            "number" : car.number,
+            "probeg" : car.probeg,
+            "carabka_transfer" : car.carabka_transfer,
+            "type_car" : car.type_car,
+            "date" : car.date,
+        }
+
+        asyncio.run(send_car_notification(car_data))
